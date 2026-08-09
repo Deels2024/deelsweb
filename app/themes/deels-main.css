@@ -1,0 +1,50 @@
+:root {
+  --deels-purple-950: #2b0a56;
+  --deels-purple-900: #351064;
+  --deels-purple-800: #4b1788;
+  --deels-purple-700: #6b2bc1;
+  --deels-purple-600: #813be2;
+  --deels-purple-500: #9b57f5;
+  --deels-pink-500: #ff4fc8;
+  --deels-cyan-500: #34d7e9;
+  --deels-lime-400: #c8f35b;
+  --deels-ink: #231a2d;
+  --deels-muted: #756b80;
+  --deels-line: #ebe4f1;
+  --deels-surface: #ffffff;
+  --deels-bg: #faf8fc;
+  --deels-soft: #f4eff8;
+  --deels-success: #26ad70;
+  --deels-shadow: 0 24px 80px rgba(68, 26, 107, 0.12);
+  --deels-shadow-soft: 0 12px 40px rgba(68, 26, 107, 0.08);
+  --deels-radius-xl: 36px;
+  --deels-radius-lg: 26px;
+  --deels-radius-md: 18px;
+}
+
+.light_theme,
+.light_there {
+  color-scheme: light;
+  --page-bg: var(--deels-bg);
+  --page-surface: var(--deels-surface);
+  --page-text: var(--deels-ink);
+  --page-muted: var(--deels-muted);
+  --page-line: var(--deels-line);
+  --page-accent: var(--deels-purple-700);
+  --page-accent-2: var(--deels-pink-500);
+}
+
+.theme-gradient {
+  background:
+    radial-gradient(circle at 12% 14%, rgba(255, 79, 200, 0.14), transparent 29%),
+    radial-gradient(circle at 90% 20%, rgba(52, 215, 233, 0.15), transparent 31%),
+    linear-gradient(150deg, #ffffff 0%, #faf7ff 52%, #f8fdff 100%);
+}
+
+.theme-dark-card {
+  color: #fff;
+  background:
+    radial-gradient(circle at 82% 10%, rgba(255, 79, 200, 0.4), transparent 35%),
+    radial-gradient(circle at 15% 90%, rgba(52, 215, 233, 0.2), transparent 38%),
+    linear-gradient(150deg, #281047 0%, #43116e 52%, #220838 100%);
+}
