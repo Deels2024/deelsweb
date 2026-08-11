@@ -1,6 +1,6 @@
-# Deels Web — новый дизайн
+# Deels Web — production-ready новый дизайн
 
-Полный адаптивный веб-контур Deels: 26 экранов, единая светлая тема, публичные разделы, личный кабинет и создание контента. Проект подготовлен для поэтапного подключения существующего Laravel-бэкенда без переделки вёрстки.
+Адаптивный веб-контур Deels: 28 основных экранов, публичные каталоги и detail-страницы, вертикальная лента, баттлы, копилки, личный кабинет, сообщения, платежные действия и создание контента. Светлая тема `light_theme / light_there` сохранена.
 
 ## Запуск
 
@@ -10,13 +10,23 @@ cp .env.example .env.local
 npm run dev
 ```
 
-По умолчанию включён `demo`. Для Laravel укажите `DEELS_BACKEND_URL` и переключите `NEXT_PUBLIC_DEELS_API_MODE=auto`, после проверки — `live`.
+По умолчанию работает безопасный `demo`. Для существующего Laravel укажите `DEELS_BACKEND_URL`, включите `auto` для контрактной проверки, затем `live` для production.
 
-## Где что находится
+## Архитектура
 
-- `app/styles.css`, `app/pages.css`, `app/themes/deels-main.css` — сетка, страницы и тема `light_theme / light_there`;
-- `app/lib/api/` — API-клиент, эндпоинты, мапперы, сервисы и hooks;
-- `app/api/deels/[...path]/route.ts` — same-origin прокси к Laravel;
-- `docs/BACKEND_INTEGRATION.md` — пошаговое подключение всех функций.
+- `app/components/deels-app.tsx` — маршрутизация экранов и интерактивные сценарии;
+- `app/lib/api/` — конфиг, endpoint map, клиент, мапперы, сервисы и hooks;
+- `app/api/deels/[...path]/route.ts` — защищённый same-origin proxy к Laravel;
+- `app/lib/seo.ts`, `robots.ts`, `sitemap.ts`, `manifest.ts` — SEO/PWA слой;
+- `app/lib/legal.ts` — веб-версии юридических документов;
+- `worker/index.ts` — Cloudflare entrypoint и security headers;
+- `docs/BACKEND_INTEGRATION.md` — полный контракт подключения Laravel;
+- `docs/PRODUCTION_READINESS.md` — внешний checklist и smoke matrix.
 
-Проверка: `npm run lint && npm test`.
+## Проверка
+
+```bash
+npm run lint
+npm test
+npm run validate:artifact
+```

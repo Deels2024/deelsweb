@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Deels — твоя идея становится движением</title>
+  <desc id="desc">Челленджи, короткие видео, баттлы и добрые дела</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#23112f"/>
+      <stop offset=".52" stop-color="#6b2bc1"/>
+      <stop offset="1" stop-color="#ef4c9b"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop offset="0" stop-color="#78e7e1" stop-opacity=".75"/>
+      <stop offset="1" stop-color="#78e7e1" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" rx="42" fill="url(#bg)"/>
+  <circle cx="960" cy="120" r="260" fill="url(#glow)"/>
+  <circle cx="1050" cy="550" r="310" fill="#ef4c9b" opacity=".2"/>
+  <g transform="translate(88 82)">
+    <rect width="90" height="90" rx="31 31 31 12" fill="#fff" transform="rotate(-4 45 45)"/>
+    <text x="45" y="63" text-anchor="middle" fill="#6b2bc1" font-family="Arial,sans-serif" font-size="54" font-weight="900">D</text>
+    <text x="118" y="67" fill="#fff" font-family="Arial,sans-serif" font-size="52" font-weight="900" letter-spacing="6">DEELS</text>
+  </g>
+  <text x="88" y="300" fill="#fff" font-family="Arial,sans-serif" font-size="74" font-weight="900">Твоя идея становится</text>
+  <text x="88" y="390" fill="#78e7e1" font-family="Arial,sans-serif" font-size="84" font-weight="900">движением</text>
+  <text x="92" y="475" fill="#fff" opacity=".78" font-family="Arial,sans-serif" font-size="30">Челленджи · короткие видео · баттлы · добрые дела</text>
+</svg>
+
