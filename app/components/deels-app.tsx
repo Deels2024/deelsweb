@@ -4,7 +4,9 @@ import {
   type AnchorHTMLAttributes,
   type FormEvent,
   type MouseEvent,
+  type PointerEvent as ReactPointerEvent,
   type ReactNode,
+  type WheelEvent as ReactWheelEvent,
   useEffect,
   useMemo,
   useRef,
@@ -1927,15 +1929,84 @@ function StoryDetail({ id }: { id: string }) {
   const fallback =
     demoContent.stories.find((item) => item.id === id) ||
     demoContent.stories[0];
-  const resource = useApiResource(
-    `story:${id}`,
-    () => deelsApi.stories.detail(id),
-    fallback,
+  const storyListResource = useApiResource(
+    "story-viewer-list",
+    async () => (await deelsApi.stories.list({ limit: 30 })).items,
+    demoContent.stories,
   );
-  const story = resource.data;
+  const storyDeck = useMemo(() => {
+    const items = storyListResource.data;
+    return items.some((item) => item.id === id) ? items : [fallback, ...items];
+  }, [fallback, id, storyListResource.data]);
+  const [currentId, setCurrentId] = useState(id);
+  const currentIndex = Math.max(
+    0,
+    storyDeck.findIndex((item) => item.id === currentId),
+  );
+  const currentSummary = storyDeck[currentIndex] || fallback;
+  const resource = useApiResource(
+    `story:${currentSummary.id}`,
+    () => deelsApi.stories.detail(currentSummary.id),
+    currentSummary,
+  );
+  const story =
+    resource.data.id === currentSummary.id ? resource.data : currentSummary;
   const [liked, setLiked] = useState(false);
   const [following, setFollowing] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const pointerStart = useRef<{ x: number; y: number } | null>(null);
+  const lastWheelAt = useRef(0);
+
+  function showStory(index: number) {
+    if (storyDeck.length < 2) return;
+    const normalizedIndex =
+      (index + storyDeck.length) % storyDeck.length;
+    const nextStory = storyDeck[normalizedIndex];
+    setLiked(false);
+    setFollowing(false);
+    setFeedback("");
+    setCurrentId(nextStory.id);
+    window.history.replaceState({}, "", `/stories/${nextStory.id}`);
+  }
+
+  function showPreviousStory() {
+    showStory(currentIndex - 1);
+  }
+
+  function showNextStory() {
+    showStory(currentIndex + 1);
+  }
+
+  function startStorySwipe(event: ReactPointerEvent<HTMLDivElement>) {
+    if ((event.target as HTMLElement).closest("button, video")) return;
+    pointerStart.current = { x: event.clientX, y: event.clientY };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }
+
+  function finishStorySwipe(event: ReactPointerEvent<HTMLDivElement>) {
+    const start = pointerStart.current;
+    pointerStart.current = null;
+    if (!start) return;
+    const deltaX = event.clientX - start.x;
+    const deltaY = event.clientY - start.y;
+    if (Math.abs(deltaX) < 48 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+    if (deltaX < 0) showNextStory();
+    else showPreviousStory();
+  }
+
+  function scrollStories(event: ReactWheelEvent<HTMLDivElement>) {
+    const movement = Math.abs(event.deltaX) > Math.abs(event.deltaY)
+      ? event.deltaX
+      : event.deltaY;
+    if (Math.abs(movement) < 24) return;
+    const now = Date.now();
+    if (now - lastWheelAt.current < 550) return;
+    lastWheelAt.current = now;
+    event.preventDefault();
+    if (movement > 0) showNextStory();
+    else showPreviousStory();
+  }
+
   async function like() {
     const next = !liked;
     setLiked(next);
@@ -1969,24 +2040,85 @@ function StoryDetail({ id }: { id: string }) {
             />
           </div>
           <div className="container story-detail-grid">
-            <div className={`story-player poster-${story.tone}`}>
-              {story.mediaUrl ? (
-                <video
-                  src={story.mediaUrl}
-                  controls
-                  playsInline
-                  preload="metadata"
-                  aria-label={story.title}
-                />
-              ) : (
-                <>
-                  <span className="phone-live">История • {story.time}</span>
-                  <span className="detail-emoji">{story.emoji}</span>
-                  <span className="play-button big">
-                    <Icon name="play" />
-                  </span>
-                </>
-              )}
+            <div className="story-viewer-shell">
+              <button
+                type="button"
+                className="story-nav story-nav-previous"
+                onClick={showPreviousStory}
+                aria-label="Предыдущая история"
+                disabled={storyDeck.length < 2}
+              >
+                <span aria-hidden="true">‹</span>
+              </button>
+              <div
+                className={`story-player poster-${story.tone}`}
+                onPointerDown={startStorySwipe}
+                onPointerUp={finishStorySwipe}
+                onPointerCancel={() => {
+                  pointerStart.current = null;
+                }}
+                onWheel={scrollStories}
+                onKeyDown={(event) => {
+                  if (event.key === "ArrowLeft") showPreviousStory();
+                  if (event.key === "ArrowRight") showNextStory();
+                  if (event.key === "Home") showStory(0);
+                  if (event.key === "End") showStory(storyDeck.length - 1);
+                }}
+                role="region"
+                aria-roledescription="просмотрщик историй"
+                aria-label={`${story.title}. История ${currentIndex + 1} из ${storyDeck.length}`}
+                tabIndex={0}
+              >
+                <div className="story-progress" aria-label="Выбор истории">
+                  {storyDeck.map((item, index) => (
+                    <button
+                      type="button"
+                      key={item.id}
+                      className={index === currentIndex ? "active" : ""}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        showStory(index);
+                      }}
+                      aria-label={`Открыть историю ${index + 1}: ${item.title}`}
+                      aria-current={index === currentIndex ? "true" : undefined}
+                    />
+                  ))}
+                </div>
+                <div className="story-frame" key={story.id} aria-live="polite">
+                  {story.mediaUrl ? (
+                    <video
+                      src={story.mediaUrl}
+                      controls
+                      playsInline
+                      preload="metadata"
+                      aria-label={story.title}
+                    />
+                  ) : (
+                    <>
+                      <span className="phone-live">История • {story.time}</span>
+                      <span className="detail-emoji">{story.emoji}</span>
+                      <span className="play-button big">
+                        <Icon name="play" />
+                      </span>
+                    </>
+                  )}
+                </div>
+                <div className="story-swipe-hint" aria-hidden="true">
+                  <span>←</span> Свайпните <span>→</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="story-nav story-nav-next"
+                onClick={showNextStory}
+                aria-label="Следующая история"
+                disabled={storyDeck.length < 2}
+              >
+                <span aria-hidden="true">›</span>
+              </button>
+              <span className="story-position" aria-live="polite">
+                {currentIndex + 1} / {storyDeck.length}
+              </span>
             </div>
             <div>
               <A href="/stories" className="back-link light">

@@ -55,6 +55,25 @@ test("critical interactive journeys are wired to services", async () => {
   }
 });
 
+test("story viewer supports touch, wheel, buttons and keyboard navigation", async () => {
+  const [app, pages] = await Promise.all([
+    read("app/components/deels-app.tsx"),
+    read("app/pages.css"),
+  ]);
+  for (const marker of [
+    "onPointerDown={startStorySwipe}",
+    "onWheel={scrollStories}",
+    'event.key === "ArrowLeft"',
+    'event.key === "ArrowRight"',
+    "story-progress",
+    "story-nav-next",
+  ]) {
+    assert.match(app, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+  assert.match(pages, /touch-action:\s*pan-y/);
+  assert.match(pages, /\.story-swipe-hint/);
+});
+
 test("private screens and API proxy fail closed", async () => {
   const [app, seo, proxy] = await Promise.all([
     read("app/components/deels-app.tsx"),
