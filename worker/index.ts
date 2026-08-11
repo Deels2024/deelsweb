@@ -23,13 +23,15 @@ function withSecurityHeaders(response: Response): Response {
   const headers = new Headers(response.headers);
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  headers.set("X-Frame-Options", "DENY");
+  // CSP is used instead of X-Frame-Options so the Sites build can be embedded
+  // by ChatGPT without opening the page to arbitrary third-party frames.
+  headers.delete("X-Frame-Options");
   headers.set("Permissions-Policy", "camera=(self), microphone=(self), geolocation=(), payment=(self), interest-cohort=()");
   headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
   if ((headers.get("content-type") || "").includes("text/html")) {
     headers.set(
       "Content-Security-Policy",
-      "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: https:; font-src 'self' data:; connect-src 'self' https://deels.ru; upgrade-insecure-requests",
+      "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self' https://chatgpt.com https://*.chatgpt.com; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: https:; font-src 'self' data:; connect-src 'self' https://deels.ru; upgrade-insecure-requests",
     );
   }
   return new Response(response.body, {

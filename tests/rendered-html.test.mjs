@@ -42,7 +42,10 @@ test("adds browser security headers", async () => {
   );
 
   assert.equal(response.headers.get("x-content-type-options"), "nosniff");
-  assert.equal(response.headers.get("x-frame-options"), "DENY");
-  assert.match(response.headers.get("content-security-policy") ?? "", /frame-ancestors 'none'/);
+  assert.equal(response.headers.get("x-frame-options"), null);
+  assert.match(
+    response.headers.get("content-security-policy") ?? "",
+    /frame-ancestors 'self' https:\/\/chatgpt\.com https:\/\/\*\.chatgpt\.com/,
+  );
   assert.match(response.headers.get("strict-transport-security") ?? "", /max-age=31536000/);
 });
