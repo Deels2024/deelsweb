@@ -16,7 +16,7 @@ export const endpoints = Object.freeze({
     verifyEmail: (token: string) => api(`auth/verify-email/${encode(token)}`),
     resendVerification: api("auth/email/verification-notification"),
     oauth: (provider: string) => api(`auth/oauth/${encode(provider)}/redirect`),
-    me: api("user"),
+    me: api("profile"),
   },
   stats: api("stats"),
   challenges: {
