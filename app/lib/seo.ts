@@ -77,9 +77,10 @@ function humanize(value: string): string {
     .replace(/^./, (letter) => letter.toUpperCase());
 }
 
+type SeoKind = "challenges" | "battles" | "stories" | "campaigns";
 type SeoEntity = { title?: string; description?: string; image?: string; updatedAt?: string };
 
-async function fetchSeoEntity(kind: "challenges" | "stories" | "campaigns", id: string): Promise<SeoEntity | null> {
+async function fetchSeoEntity(kind: SeoKind, id: string): Promise<SeoEntity | null> {
   const backend = process.env.DEELS_BACKEND_URL?.replace(/\/$/, "");
   if (!backend) return null;
   const controller = new AbortController();
@@ -116,13 +117,19 @@ export async function buildPageMetadata(path: string): Promise<Metadata> {
   const canonical = `${siteUrl}${normalized === "/" ? "" : normalized}`;
   let entry = staticSeo[normalized];
   let entity: SeoEntity | null = null;
-  const entityMatch = normalized.match(/^\/(challenges|stories|campaigns)\/([^/]+)$/);
+  const entityMatch = normalized.match(/^\/(challenges|battles|stories|campaigns)\/([^/]+)$/);
 
   if (entityMatch) {
-    const kind = entityMatch[1] as "challenges" | "stories" | "campaigns";
+    const kind = entityMatch[1] as SeoKind;
     const id = entityMatch[2];
     entity = await fetchSeoEntity(kind, id);
-    const label = kind === "challenges" ? "Челлендж" : kind === "stories" ? "История" : "Копилка";
+    const labels: Record<SeoKind, string> = {
+      challenges: "Челлендж",
+      battles: "Баттл",
+      stories: "История",
+      campaigns: "Копилка",
+    };
+    const label = labels[kind];
     const name = entity?.title || humanize(id);
     entry = {
       title: `${name} — ${label} в Deels`,
@@ -266,9 +273,9 @@ export async function structuredDataForPath(path: string): Promise<Record<string
     );
   }
 
-  const match = normalized.match(/^\/(challenges|stories|campaigns)\/([^/]+)$/);
+  const match = normalized.match(/^\/(challenges|battles|stories|campaigns)\/([^/]+)$/);
   if (match) {
-    const kind = match[1] as "challenges" | "stories" | "campaigns";
+    const kind = match[1] as SeoKind;
     const id = match[2];
     const entity = await fetchSeoEntity(kind, id);
     const title = entity?.title || humanize(id);
