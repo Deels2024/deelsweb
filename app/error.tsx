@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 export default function ErrorPage({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <main className="deels-state-page">
@@ -11,9 +13,9 @@ export default function ErrorPage({ reset }: { error: Error & { digest?: string 
           <button type="button" className="deels-state-button" onClick={() => reset()}>
             Повторить
           </button>
-          <a className="deels-state-button secondary" href="/">
+          <Link className="deels-state-button secondary" href="/">
             На главную
-          </a>
+          </Link>
         </div>
       </section>
     </main>
