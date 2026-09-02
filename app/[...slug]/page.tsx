@@ -22,6 +22,7 @@ function isKnownPath(path: string): boolean {
   return staticPaths.has(path) || [
     /^\/challenges\/[^/]+$/,
     /^\/challenges\/[^/]+\/respond$/,
+    /^\/battles\/[^/]+$/,
     /^\/stories\/[^/]+$/,
     /^\/campaigns\/[^/]+$/,
     /^\/users\/[^/]+$/,
