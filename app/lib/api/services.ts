@@ -222,6 +222,8 @@ export const deelsApi = Object.freeze({
       params?: Record<string, string | number | boolean | undefined>,
     ): Promise<PageResult<BattleView>> =>
       page(await apiRequest(query(endpoints.battles.list, params)), mapBattle),
+    detail: async (id: string | number): Promise<BattleView> =>
+      mapBattle(unwrapData(await apiRequest(endpoints.battles.detail(id)))),
     vote: async (battleId: string | number, sideId: string | number) =>
       unwrapData<UnknownRecord>(
         await apiRequest(endpoints.battles.vote(battleId), {

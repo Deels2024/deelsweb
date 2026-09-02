@@ -80,6 +80,26 @@ function humanize(value: string): string {
 type SeoKind = "challenges" | "battles" | "stories" | "campaigns";
 type SeoEntity = { title?: string; description?: string; image?: string; updatedAt?: string };
 
+export async function publicEntityStatus(path: string): Promise<number | null> {
+  const match = path.replace(/\/$/, "").match(/^\/(challenges|battles|stories|campaigns)\/([^/]+)$/);
+  const backend = process.env.DEELS_BACKEND_URL?.replace(/\/$/, "");
+  if (!match || !backend) return null;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 3_500);
+  try {
+    const response = await fetch(`${backend}/api/${match[1]}/${encodeURIComponent(match[2])}`, {
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+      next: { revalidate: 300 },
+    });
+    return response.status;
+  } catch {
+    return 503;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function fetchSeoEntity(kind: SeoKind, id: string): Promise<SeoEntity | null> {
   const backend = process.env.DEELS_BACKEND_URL?.replace(/\/$/, "");
   if (!backend) return null;

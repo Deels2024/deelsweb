@@ -21,6 +21,28 @@ test("SEO surface contains canonical, robots, sitemap, manifest and structured d
   assert.match(sitemap, /DEELS_BACKEND_URL/);
   assert.match(manifest, /standalone/);
   assert.match(routed, /notFound\(\)/);
+  assert.match(routed, /publicEntityStatus/);
+  assert.match(routed, /entityStatus === 404/);
+});
+
+test("public detail routes and recoverable API states are complete", async () => {
+  const [app, client, hooks, seo, sitemap] = await Promise.all([
+    read("app/components/deels-app.tsx"),
+    read("app/lib/api/client.ts"),
+    read("app/lib/api/hooks.ts"),
+    read("app/lib/seo.ts"),
+    read("app/sitemap.ts"),
+  ]);
+  for (const kind of ["challenges", "battles", "stories", "campaigns"]) {
+    assert.match(seo, new RegExp(kind));
+    assert.match(sitemap, new RegExp(kind));
+  }
+  assert.match(app, /function BattleDetail/);
+  assert.match(app, /onRetry=\{resource\.refresh\}/);
+  assert.match(client, /response\.status === 419/);
+  assert.match(client, /validationErrors/);
+  assert.match(client, /retry_after/);
+  assert.match(hooks, /refresh/);
 });
 
 test("critical interactive journeys are wired to services", async () => {

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Fragment,
   type AnchorHTMLAttributes,
   type FormEvent,
   type MouseEvent,
@@ -1091,10 +1092,12 @@ function StatusLine({
   loading,
   error,
   source,
+  onRetry,
 }: {
   loading?: boolean;
   error?: string;
   source?: "api" | "demo";
+  onRetry?: () => void;
 }) {
   if (loading)
     return (
@@ -1104,10 +1107,10 @@ function StatusLine({
     );
   if (error)
     return (
-      <p className="status-line warning" role="status">
-        {source === "demo" ? "Показаны демонстрационные данные. " : ""}
-        {error}
-      </p>
+      <div className="status-line warning" role="alert">
+        <span>{source === "demo" ? "Показаны демонстрационные данные. " : ""}{error}</span>
+        <button type="button" onClick={onRetry ?? (() => window.location.reload())}>Повторить</button>
+      </div>
     );
   return null;
 }
@@ -1240,6 +1243,7 @@ function ChallengesPage() {
               loading={resource.loading}
               error={resource.error}
               source={resource.source}
+              onRetry={resource.refresh}
             />
             <div className="catalog-toolbar">
               <span>
@@ -1313,6 +1317,7 @@ function ChallengeDetail({ id }: { id: string }) {
               loading={resource.loading}
               error={resource.error}
               source={resource.source}
+              onRetry={resource.refresh}
             />
           </div>
           <div className="container detail-grid">
@@ -1850,6 +1855,62 @@ function BattlesPage() {
   );
 }
 
+function BattleDetail({ id }: { id: string }) {
+  const fallback = demoBattles.find((item) => item.id === id) || demoBattles[0];
+  const resource = useApiResource(
+    `battle:${id}`,
+    () => deelsApi.battles.detail(id),
+    fallback,
+  );
+  const battle = resource.data;
+  const [selected, setSelected] = useState(battle.votedSideId || "");
+  const [feedback, setFeedback] = useState("");
+
+  async function vote(sideId: string) {
+    if (selected || battle.status === "finished") return;
+    setSelected(sideId);
+    setFeedback("");
+    try {
+      if (apiConfig.mode !== "demo") await deelsApi.battles.vote(battle.id, sideId);
+      setFeedback("Ваш голос принят");
+    } catch (error) {
+      setSelected("");
+      setFeedback(apiErrorText(error));
+    }
+  }
+
+  return (
+    <PageShell path="/battles">
+      <main>
+        <section className="detail-hero">
+          <div className="container">
+            <StatusLine loading={resource.loading} error={resource.error} source={resource.source} onRetry={resource.refresh} />
+            <A href="/battles" className="back-link"><Icon name="back" /> Все баттлы</A>
+            <article className="battle-card battle-detail-card">
+              <div className="battle-head">
+                <span>{battle.round}</span><h1>{battle.title}</h1>
+                <small>{battle.status === "finished" ? "Баттл завершён" : battle.endsIn ? `Осталось ${battle.endsIn}` : "Голосование открыто"}</small>
+              </div>
+              <div className="versus-grid">
+                {battle.sides.map((side, index) => (
+                  <Fragment key={side.id}>
+                    {index === 1 && <b>VS</b>}
+                    <button type="button" disabled={Boolean(selected) || battle.status === "finished"} aria-pressed={selected === side.id} onClick={() => vote(side.id)} className={`battle-side poster-${side.tone} ${selected === side.id ? "selected" : ""}`}>
+                      {side.mediaUrl ? <video src={side.mediaUrl} controls playsInline preload="metadata" /> : <span>{side.emoji}</span>}
+                      <strong>@{side.author}</strong><small>{side.percent}%</small>
+                    </button>
+                  </Fragment>
+                ))}
+              </div>
+              <p role="status">{feedback || `${battle.totalVotes.toLocaleString("ru-RU")} голосов`}</p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </PageShell>
+  );
+}
+
 function StoriesPage() {
   const [filter, setFilter] = useState("Все истории");
   const [limit, setLimit] = useState(12);
@@ -1899,6 +1960,7 @@ function StoriesPage() {
               loading={resource.loading}
               error={resource.error}
               source={resource.source}
+              onRetry={resource.refresh}
             />
             <div className="stories-catalog">
               {resource.data.map((item) => (
@@ -2037,6 +2099,7 @@ function StoryDetail({ id }: { id: string }) {
               loading={resource.loading}
               error={resource.error}
               source={resource.source}
+              onRetry={resource.refresh}
             />
           </div>
           <div className="container story-detail-grid">
@@ -2281,6 +2344,7 @@ function CampaignsPage() {
               loading={resource.loading}
               error={resource.error}
               source={resource.source}
+              onRetry={resource.refresh}
             />
             <div className="campaign-grid large">
               {resource.data.map((item) => (
@@ -2364,6 +2428,7 @@ function CampaignDetail({ id }: { id: string }) {
               loading={resource.loading}
               error={resource.error}
               source={resource.source}
+              onRetry={resource.refresh}
             />
           </div>
           <div className="container campaign-detail-grid">
@@ -5383,6 +5448,8 @@ export function DeelsApp({ initialPath }: { initialPath: string }) {
     return <ChallengeDetail id={path.split("/")[2]} />;
   if (path === "/feed") return <FeedPage />;
   if (path === "/battles") return <BattlesPage />;
+  if (path.startsWith("/battles/"))
+    return <BattleDetail id={path.split("/")[2]} />;
   if (path === "/stories") return <StoriesPage />;
   if (path.startsWith("/stories/"))
     return <StoryDetail id={path.split("/")[2]} />;

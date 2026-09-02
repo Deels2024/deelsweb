@@ -1,6 +1,6 @@
 import { DeelsApp } from "../components/deels-app";
 import { StructuredData } from "../components/structured-data";
-import { buildPageMetadata, structuredDataForPath } from "../lib/seo";
+import { buildPageMetadata, publicEntityStatus, structuredDataForPath } from "../lib/seo";
 import { notFound } from "next/navigation";
 
 type Props = { params: Promise<{ slug: string[] }> };
@@ -39,6 +39,11 @@ export async function generateMetadata({ params }: Props) {
 export default async function RoutedPage({ params }: Props) {
   const path = await pathFrom(params);
   if (!isKnownPath(path)) notFound();
+  const entityStatus = await publicEntityStatus(path);
+  if (entityStatus === 404) notFound();
+  if (entityStatus !== null && entityStatus >= 500) {
+    throw new Error(`Deels API returned ${entityStatus} for ${path}`);
+  }
   const data = await structuredDataForPath(path);
   return (
     <>
