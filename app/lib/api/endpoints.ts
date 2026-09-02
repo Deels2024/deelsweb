@@ -32,6 +32,10 @@ export const endpoints = Object.freeze({
   feed: api("feed"),
   battles: {
     list: api("battles"),
+    detail: (id: string | number) => api(`battles/${encode(id)}`),
+    create: api("battles"),
+    update: (id: string | number) => api(`battles/${encode(id)}`),
+    respond: (id: string | number) => api(`battles/${encode(id)}/response`),
     vote: (id: string | number) => api(`battles/${encode(id)}/vote`),
   },
   stories: {
