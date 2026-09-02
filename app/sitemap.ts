@@ -21,7 +21,7 @@ const publicRoutes = [
 async function dynamicRoutes(): Promise<MetadataRoute.Sitemap> {
   const backend = process.env.DEELS_BACKEND_URL?.replace(/\/$/, "");
   if (!backend) return [];
-  const kinds = ["challenges", "stories", "campaigns"] as const;
+  const kinds = ["challenges", "battles", "stories", "campaigns"] as const;
   const results = await Promise.all(
     kinds.map(async (kind) => {
       try {
@@ -45,7 +45,7 @@ async function dynamicRoutes(): Promise<MetadataRoute.Sitemap> {
             url: `${siteUrl}/${kind}/${encodeURIComponent(id)}`,
             lastModified: row.updated_at ? new Date(String(row.updated_at)) : new Date(),
             changeFrequency: "daily" as const,
-            priority: kind === "challenges" ? 0.8 : 0.7,
+            priority: kind === "challenges" || kind === "battles" ? 0.8 : 0.7,
           }];
         });
       } catch {
@@ -62,7 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${siteUrl}${route === "/" ? "" : route}`,
     lastModified: now,
     changeFrequency: route === "/" ? "daily" : "weekly",
-    priority: route === "/" ? 1 : route === "/challenges" ? 0.9 : 0.7,
+    priority: route === "/" ? 1 : route === "/challenges" || route === "/battles" ? 0.9 : 0.7,
   }));
   return [...staticEntries, ...(await dynamicRoutes())];
 }
